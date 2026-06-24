@@ -1,93 +1,58 @@
-/* ===================================================================
-   LEARN & SHINE — Site Scripts
-   =================================================================== */
+// Navbar scroll effect
+const navbar = document.querySelector('.navbar');
+const backToTop = document.getElementById('backToTop');
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('scroll', () => {
+  if (navbar) {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+  }
+  if (backToTop) {
+    backToTop.classList.toggle('visible', window.scrollY > 400);
+  }
+});
 
-  /* ---------- Footer year ---------- */
-  document.querySelectorAll('.js-year').forEach(el => {
-    el.textContent = new Date().getFullYear();
+if (backToTop) {
+  backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+}
+
+if (hamburger && navLinks) {
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    navLinks.classList.toggle('open');
   });
-
-  /* ---------- Navbar scroll state ---------- */
-  const navbar = document.querySelector('.navbar');
-  const onScroll = () => {
-    if (!navbar) return;
-    navbar.classList.toggle('is-scrolled', window.scrollY > 12);
-  };
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  /* ---------- Mobile nav toggle ---------- */
-  const toggle = document.querySelector('.nav-toggle');
-  const navLinks = document.querySelector('.nav-links');
-
-  if (toggle && navLinks) {
-    toggle.addEventListener('click', () => {
-      const isOpen = navLinks.classList.toggle('is-open');
-      toggle.classList.toggle('is-open', isOpen);
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  // close on link click
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      navLinks.classList.remove('open');
     });
+  });
+}
 
-    /* Tap-to-expand dropdown on mobile */
-    document.querySelectorAll('.has-dropdown > a').forEach(link => {
-      link.addEventListener('click', (e) => {
-        if (window.innerWidth <= 900) {
-          e.preventDefault();
-          link.parentElement.classList.toggle('is-open');
-        }
-      });
-    });
-
-    /* Close mobile menu when a plain link is tapped */
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        if (window.innerWidth <= 900 && !link.parentElement.classList.contains('has-dropdown')) {
-          navLinks.classList.remove('is-open');
-          toggle.classList.remove('is-open');
-        }
-      });
-    });
+// Active nav link
+const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+document.querySelectorAll('.nav-links a').forEach(link => {
+  const href = link.getAttribute('href');
+  if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+    link.classList.add('active');
   }
+});
 
-  /* ---------- Scroll-reveal for cards/sections ---------- */
-  const revealEls = document.querySelectorAll(
-    '.pillar-card, .product-card, .notebook-card, .book-card, .audience-card, .future-card, .about-card, .contact-info-card'
-  );
+// Intersection Observer for animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
 
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if ('IntersectionObserver' in window && !prefersReducedMotion) {
-    revealEls.forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(18px)';
-      el.style.transition = 'opacity .6s ease, transform .6s ease';
-    });
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-    revealEls.forEach(el => observer.observe(el));
-  }
-
-  /* ---------- Contact form: lightweight UX feedback ---------- */
-  const contactForm = document.querySelector('.js-contact-form');
-  if (contactForm) {
-    contactForm.addEventListener('submit', () => {
-      const btn = contactForm.querySelector('button[type="submit"]');
-      if (btn) {
-        btn.dataset.originalText = btn.textContent;
-        btn.textContent = 'Sending…';
-        btn.disabled = true;
-      }
-    });
-  }
-
+document.querySelectorAll('.glass-card, .product-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, box-shadow 0.3s';
+  observer.observe(el);
 });
